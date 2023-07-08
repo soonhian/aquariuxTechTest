@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
@@ -36,7 +37,7 @@ public class RestService {
 
     private final RestTemplate restTemplate;
 
-    private HashMap<String, CryptoCoinPair> coinHashMap = new HashMap<String, CryptoCoinPair>();
+    private ConcurrentHashMap<String, CryptoCoinPair> coinHashMap = new ConcurrentHashMap<String, CryptoCoinPair>();
     
 	@Autowired
 	CyptoCoinRepository cyptoCoinRepository;
@@ -47,7 +48,7 @@ public class RestService {
     
     @Scheduled(fixedRate = 10000)
 	public void reportCurrentTime() {
-    	coinHashMap = new HashMap<String, CryptoCoinPair>();
+    	//coinHashMap = new ConcurrentHashMap<String, CryptoCoinPair>();
 		getExternalBinanceURL();
 		getExternalHuobiURL();
 		
@@ -70,6 +71,7 @@ public class RestService {
 			dto = objectMapper.readValue(this.restTemplate.getForObject(externalBinanceURL, String.class),
 					new TypeReference<List<BinanceDTO>>(){});
 	        dto.stream().forEach(d ->{
+	        	//if(d.getSymbol().toUpperCase().equals("ETHUSDT") || d.getSymbol().toUpperCase().equals("BTCUSDT")) {
 			        	if(coinHashMap.containsKey(d.getSymbol().toUpperCase())) {
 			        		CryptoCoinPair coin = coinHashMap.get(d.getSymbol().toUpperCase());
 			        		if(coin.getAskPrice() < Float.parseFloat(d.getAskPrice())) {
@@ -83,8 +85,9 @@ public class RestService {
 			        		coinHashMap.put(coin.getSymbol().toUpperCase(),coin);
 			        	}else {
 			        		coinHashMap.put(d.getSymbol().toUpperCase(),new CryptoCoinPair(d.getSymbol().toUpperCase(),Float.parseFloat(d.getBidPrice()),Float.parseFloat(d.getAskPrice())
-			        				,"Binance","Binance") );
+			        				,"Binance","Binance",null,null) );
 			        	}
+	        	//}
 	        } );
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -106,6 +109,7 @@ public class RestService {
 			dto = objectMapper.convertValue(this.restTemplate.getForObject(huobi, JsonResponse.class).getData(),
 					new TypeReference<List<HuobiDTO>>(){});
 			  dto.stream().forEach(d ->{
+		        	//if(d.getSymbol().toUpperCase().equals("ETHUSDT") || d.getSymbol().toUpperCase().equals("BTCUSDT")) {
 		        	if(coinHashMap.containsKey(d.getSymbol().toUpperCase())) {
 		        		CryptoCoinPair coin = coinHashMap.get(d.getSymbol().toUpperCase());
 		        		if(coin.getAskPrice() < Float.parseFloat(d.getAsk())) {
@@ -118,8 +122,10 @@ public class RestService {
 		        		}
 		        		coinHashMap.put(coin.getSymbol().toUpperCase(),coin);
 		        	}else {
-		        		coinHashMap.put(d.getSymbol().toUpperCase(),new CryptoCoinPair(d.getSymbol().toUpperCase(),Float.parseFloat(d.getBid()),Float.parseFloat(d.getAsk()),"huobi","huobi") );
+		        		coinHashMap.put(d.getSymbol().toUpperCase(),new CryptoCoinPair(d.getSymbol().toUpperCase(),Float.parseFloat(d.getBid())
+		        				,Float.parseFloat(d.getAsk()),"huobi","huobi",null,null) );
 		        	}
+		        	//}
 		        } );
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -130,8 +136,8 @@ public class RestService {
     
 	@PostConstruct
 	public void getExternalInformation() {
-		getExternalBinanceURL();
-		getExternalHuobiURL();
+		//getExternalBinanceURL();
+		//getExternalHuobiURL();
 	}
     
     

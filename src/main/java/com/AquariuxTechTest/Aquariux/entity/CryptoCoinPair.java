@@ -17,6 +17,12 @@ public class CryptoCoinPair {
 	@Column(name = "COINPAIR_SYMBOL")
 	private String symbol;
 	
+	@Column(name = "QUOTE_CURRENCY")
+	private String quoteCurrency;
+	
+	@Column(name = "BASE_CURRENCY")
+	private String baseCurrency;
+	
 	@Column(name = "ASK_PRICE")
 	private Float askPrice;
 	
@@ -29,12 +35,14 @@ public class CryptoCoinPair {
 	@Column(name = "ASK_SOURCE")
 	private String askSource;
 	
-	public CryptoCoinPair( String symbol , Float bidPrice,Float askPrice,String bidSource, String askSource) {
+	public CryptoCoinPair( String symbol , Float bidPrice,Float askPrice,String bidSource, String askSource,String baseCurrency,String quoteCurrency) {
 		this.symbol = symbol;
 		this.bidPrice = bidPrice;
 		this.askPrice = askPrice;
 		this.bidSource = bidSource;
 		this.askSource = askSource;
+		this.baseCurrency = baseCurrency;
+		this.quoteCurrency = quoteCurrency;
 	}
 
 	public CryptoCoinPair() {
