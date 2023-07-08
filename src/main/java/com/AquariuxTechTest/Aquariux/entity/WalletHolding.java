@@ -3,6 +3,7 @@ package com.AquariuxTechTest.Aquariux.entity;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -18,10 +19,12 @@ public class WalletHolding {
 	@GeneratedValue
 		
 		private Long id;
-		@OneToOne(cascade = CascadeType.ALL)
-		@JoinColumn(name = "COIN_ID" , referencedColumnName = "id")
-		private CryptoCoin coin;
-		private Long amount;
+	
+		@Column(name = "AMOUNT")
+		private Float amount;
+		
+		@Column(name = "SYMBOL")
+		private String symbol;
 		
 		
 	
