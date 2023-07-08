@@ -1,5 +1,6 @@
 package com.AquariuxTechTest.Aquariux.entity;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -24,7 +25,7 @@ public class Wallet {
 	
 	@OneToMany(cascade = CascadeType.ALL)
 	@JoinColumn(name = "WALLET_ID" , referencedColumnName = "id")
-	private Set<WalletHolding> walletHolding;
+	private List<WalletHolding> walletHolding;
 	
 	@Column(name = "ACTIVE_IND")
 	private Character activeInd;

@@ -20,7 +20,7 @@ public class CoinService {
 	CyptoCoinRepository cyptoCoinRepository;
 	
 	public List<CryptoCoinPair> getAggregatedPrice() {
-		System.out.println("TEST " + this.cyptoCoinRepository.findAll());
+		//System.out.println("TEST 1 " + this.cyptoCoinRepository.findAll());
 		return this.cyptoCoinRepository.findAll();
 		
 	}
