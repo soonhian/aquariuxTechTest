@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: com.AquariuxTechTest.Aquariux.AquariuxApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.127 s <<< FAILURE! - in com.AquariuxTechTest.Aquariux.AquariuxApplicationTests
+com.AquariuxTechTest.Aquariux.AquariuxApplicationTests  Time elapsed: 0.126 s  <<< ERROR!
+java.lang.NoClassDefFoundError: org/springframework/boot/SpringBootConfiguration
+Caused by: java.lang.ClassNotFoundException: org.springframework.boot.SpringBootConfiguration
+
