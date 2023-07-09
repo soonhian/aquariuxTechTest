@@ -21,6 +21,7 @@ import com.AquariuxTechTest.Aquariux.entity.Wallet;
 import com.AquariuxTechTest.Aquariux.entity.WalletHolding;
 import com.AquariuxTechTest.Aquariux.repository.UserRepository;
 import com.AquariuxTechTest.Aquariux.repository.CyptoCoinRepository;
+import com.AquariuxTechTest.Aquariux.repository.TransactionRepository;
 
 @Service
 public class UserService {
@@ -30,6 +31,9 @@ public class UserService {
 	
 	@Autowired
 	CyptoCoinRepository cryptoCoinRepository;
+	
+	@Autowired
+	TransactionRepository transactionRepository;
 	
 	public final static String USDT = "USDT"; 
 	public final static String BTC = "BTC"; 
@@ -58,105 +62,112 @@ public class UserService {
 		return userRepository.findAll();
 	}
 	
-	public String makeTransaction(TransactionDTO transaction) {
+	public void makeTransaction(TransactionDTO transaction) throws Exception {
+
 		Optional<User> userOpt = this.userRepository.findById(transaction.getUserId());
 		if (userOpt.isPresent()) {
 			User user = userOpt.get();
 			CryptoCoinPair coinPairOpt = this.cryptoCoinRepository.findBySymbol(transaction.getSymbol());
 			List <WalletHolding> walletHolding = user.getWallet().getWalletHolding();
 
-			if (transaction.getTransaction().equals("B")) {
-				Float buy = coinPairOpt.getAskPrice();
-				System.out.println("buy : " + buy);
-				
-				String quoteCurrency = transaction.getSymbol().substring(0,transaction.getSymbol().indexOf(USDT));
-				
-				// transact sell 
-				walletHolding.stream().forEach(h -> {
-					Boolean transacted = false;
-					if(h.getSymbol().equals(USDT) && !transacted) {
-						h.setAmount(h.getAmount()- (transaction.getAmount() * buy));
-						transacted = true;
-					}
-				});
-				
-				// transact buy 
-				Boolean transacted = false;
-				for(WalletHolding h  : walletHolding) {
-					if(h.getSymbol().equals(quoteCurrency) && !transacted) {
-						h.setAmount(Float.valueOf(transaction.getAmount().toString()) + h.getAmount());
-						transacted = true;
-					}
-				}
-				if(!transacted) {
-					WalletHolding holding = new WalletHolding();
-					holding.setAmount(Float.valueOf(transaction.getAmount().toString()));
-					holding.setSymbol(quoteCurrency);
-					walletHolding.add(holding);
-				}
-				
-				System.out.println("walletHolding : " + walletHolding);
-				
-				//createTransaction
-				
-				List<Transaction> transList = createTransaction(transaction, user, buy, quoteCurrency,USDT);
-				
-				
-				user.setTransactionList(transList);
-				System.out.println("user : " + user);
-
-				
+			if (transaction.getTransaction().equalsIgnoreCase("B")) {		
+				buyMethod(transaction, user, coinPairOpt, walletHolding);
 				this.userRepository.save(user);
-				
 
-				
-
-			} else if (transaction.getTransaction().equals("S")) {
-				Float sell = coinPairOpt.getBidPrice();
-				List<String> currency = new ArrayList<>();
-				// transact sell 
-				walletHolding.stream().forEach(h -> {
-					Boolean transacted = false;
-					if(transaction.getSymbol().contains(BTC) && h.getSymbol().equals(BTC) && !transacted) {
-						h.setAmount(h.getAmount()- transaction.getAmount());
-						currency.add(BTC);
-						transacted = true;
-					}
-					if(transaction.getSymbol().contains(ETH) && h.getSymbol().equals(ETH) && !transacted) {
-						h.setAmount(h.getAmount()- transaction.getAmount());
-						currency.add(ETH);
-						transacted = true;
-					}
-				});
-				
-				
-				// transact buy 
-				Boolean transacted = false;
-				for(WalletHolding h  : walletHolding) {
-					if(h.getSymbol().equals(USDT) && !transacted) {
-						h.setAmount((Float.valueOf(transaction.getAmount().toString())*sell) + h.getAmount());
-						transacted = true;
-					}
-				}
-				if(!transacted) {
-					WalletHolding holding = new WalletHolding();
-					holding.setAmount((Float.valueOf(transaction.getAmount().toString())*sell));
-					holding.setSymbol(USDT);
-					walletHolding.add(holding);
-				}
-				
-				List<Transaction> transList = createTransaction(transaction, user, sell, USDT,currency.get(0));
-				user.setTransactionList(transList);
-				System.out.println("user : " + user);
-				
+			} else if (transaction.getTransaction().equalsIgnoreCase("S")) {
+				sellMethod(transaction, user, coinPairOpt, walletHolding);
 				this.userRepository.save(user);
 				
 				
 			}
 		}
+			
+	}
+
+	private void sellMethod(TransactionDTO transaction, User user, CryptoCoinPair coinPairOpt,
+		List<WalletHolding> walletHolding)  {
+		Float sell = coinPairOpt.getBidPrice();
+		List<String> currency = new ArrayList<>();
+
+		// transact sell 
+		walletHolding.stream().forEach(h -> {
+			Boolean transacted = false;
+			if(transaction.getSymbol().contains(BTC) && h.getSymbol().equals(BTC) && !transacted) {
+				h.setAmount(h.getAmount()- transaction.getAmount());
+				currency.add(BTC);
+				transacted = true;
+			}
+			if(transaction.getSymbol().contains(ETH) && h.getSymbol().equals(ETH) && !transacted) {
+				h.setAmount(h.getAmount()- transaction.getAmount());
+				currency.add(ETH);
+				transacted = true;
+			}
+		});
 		
-		return null;
 		
+		// transact buy 
+		Boolean transacted = false;
+		for(WalletHolding h  : walletHolding) {
+			if(h.getSymbol().equals(USDT) && !transacted) {
+				h.setAmount((Float.valueOf(transaction.getAmount().toString())*sell) + h.getAmount());
+				transacted = true;
+			}
+		}
+		if(!transacted) {
+			WalletHolding holding = new WalletHolding();
+			holding.setAmount((Float.valueOf(transaction.getAmount().toString())*sell));
+			holding.setSymbol(USDT);
+			walletHolding.add(holding);
+		}
+		
+		List<Transaction> transList = createTransaction(transaction, user, sell, USDT,currency.get(0));
+
+		user.setTransactionList(transList);
+	}
+
+	private void buyMethod(TransactionDTO transaction, User user, CryptoCoinPair coinPairOpt,
+			List<WalletHolding> walletHolding) {
+		Float buy = coinPairOpt.getAskPrice();
+		String quoteCurrency = transaction.getSymbol().substring(0,transaction.getSymbol().indexOf(USDT));
+
+		
+		System.out.println("buy : " + buy);
+		
+		walletHolding.stream().forEach(h -> {
+			if(h.getSymbol().equals(USDT) ) {
+				if(h.getAmount() < transaction.getAmount()) {
+					  System.out.println("Throw Error");
+					}
+				}
+		});
+		
+		// transact sell 
+		walletHolding.stream().forEach(h -> {
+			Boolean transacted = false;
+			if(h.getSymbol().equals(USDT) && !transacted) {
+				h.setAmount(h.getAmount()- (transaction.getAmount() * buy));
+				transacted = true;
+			}
+		});
+		// transact buy 
+		Boolean transacted = false;
+		for(WalletHolding h  : walletHolding) {
+			if(h.getSymbol().equals(quoteCurrency) && !transacted) {
+				h.setAmount(Float.valueOf(transaction.getAmount().toString()) + h.getAmount());
+				transacted = true;
+			}
+		}
+		if(!transacted) {
+			WalletHolding holding = new WalletHolding();
+			holding.setAmount(Float.valueOf(transaction.getAmount().toString()));
+			holding.setSymbol(quoteCurrency);
+			walletHolding.add(holding);
+		}
+		
+
+		//createTransaction				
+		List<Transaction> transList = createTransaction(transaction, user, buy, quoteCurrency,USDT);
+		user.setTransactionList(transList);
 	}
 
 	private List<Transaction> createTransaction(TransactionDTO transaction, User user, Float price,
@@ -172,10 +183,18 @@ public class UserService {
 		return transList;
 	}
 
-	public String getWalletInfo(UserDTO user) {
+	public User getWalletInfo(UserDTO user) {
 		// TODO Auto-generated method stub
 		//this.userRepository.findById(user.getId());
-		return this.userRepository.findById(user.getId()).get().toString();
+		return this.userRepository.findById(user.getId()).get();
+	}
+
+	public List<Transaction> getTransactionInfo(UserDTO user) {
+		// TODO Auto-generated method stub
+		
+		
+		
+		return this.userRepository.findById(user.getId()).get().getTransactionList();
 	}
 
 }

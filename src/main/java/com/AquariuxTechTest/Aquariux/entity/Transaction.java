@@ -1,5 +1,6 @@
 package com.AquariuxTechTest.Aquariux.entity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -33,12 +34,16 @@ public class Transaction {
 	@Column(name = "AMOUNT")
 	private Float amount;
 	
+	@Column(name = "DATE")
+	private LocalDateTime dateTime;
+	
 	public  Transaction(String feeAction,Float price , String quoteCurrency,String baseCurrency,Float amount) {
 		this.transaction = feeAction;
 		this.price = price;
 		this.quoteCurrency = quoteCurrency;
 		this.baseCurrency = baseCurrency;
 		this.amount = amount;
+		this.dateTime = LocalDateTime.now();
 	}
 	
 	public Transaction() {
